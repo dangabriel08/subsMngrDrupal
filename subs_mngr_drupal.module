@@ -1,1 +1,81 @@
 <?php
+
+/*
+* API Documentation
+* https://api.drupal.org/api/drupal/7.x
+*/
+
+
+/**
+ * Implements hook_install().
+ */
+function subs_mngr_drupal_install()
+{
+}
+
+
+
+
+
+/*
+* Implements hook_menu().
+*/
+
+function subs_mngr_drupal_menu()
+{
+    $items['subs-mngr'] = array(
+        'page callback' => 'subs_manager_mainpage',
+        'access arguments' => array('access subs manager')
+    );
+    return $items;
+}
+
+function subs_manager_mainpage()
+{
+    return "<strong>this the subs manager main page!</strong>";
+}
+
+/*
+* Implements hook_permision().
+*/
+
+function subs_mngr_drupal_permission()
+{
+    return array(
+        'access subs manager' => array(
+            'title' => t('Access Subscription manager'),
+            'description' => t('Access Subscriptions on the site'),
+        ),
+    );
+}
+
+// Blocks = Widgets in WordPress
+
+/*
+* Implements hook_block_info().
+*/
+
+function subs_mngr_drupal_block_info()
+{
+    $blocks['subs_mngr_drupal'] = array(
+        'info' => t('Subs Manager'),
+    );
+
+    return $blocks;
+}
+
+/*
+* Implements hook_block_view().
+*/
+function subs_mngr_drupal_block_view($delta = '')
+{
+
+    $block = array();
+    switch ($delta) {
+        case 'subs_mngr_drupal':
+            $block['subject'] = t('This is the Subs Manager Subject');
+            $block['content'] = "Subs Manage Block Content!";
+            break;
+    }
+    return $block;
+}
