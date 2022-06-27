@@ -1,0 +1,3 @@
+name = Subs Manager
+description = Enables user to remember their subscriptions
+core = 7.x
