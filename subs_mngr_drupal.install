@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function subs_mngr_drupal_schema()
+{
+    $schema['subscriptions'] = array(
+        'description' => 'Subscription Table',
+        'fields' => array(
+            'id' => array(
+                'description' => 'Subs ID',
+                'type' => 'serial',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+            ),
+            'user_id' => array(
+                'description' => 'User ID',
+                'type' => 'int',
+                'not null' => TRUE
+            ),
+            'subscription_name' => array(
+                'description' => 'Subs Name',
+                'type' => 'varchar',
+                'length' => 100,
+                'not null' => TRUE,
+                'default' => '',
+            ),
+            '	subs_price' => array(
+                'description' => 'Subs Price',
+                'type' => 'numeric',
+                'precision' => 6,
+                'not null' => TRUE,
+                'default' => 0,
+            ),
+            'billing_date' => array(
+                'description' => 'Billing date',
+                'type' => 'varchar',
+                'mysql_type' => 'datetime',
+                'not null' => TRUE
+            ),
+            'payment_method_used' => array(
+                'description' => 'Payment Method Used',
+                'type' => 'varchar',
+                'length' => 100,
+                'not null' => TRUE
+            ),
+            'payment_method_type' => array(
+                'description' => 'Payment Method Type',
+                'type' => 'varchar',
+                'length' => 100,
+                'not null' => TRUE
+            )
+        ),
+        'indexes' => array(
+            'user_index' => array(
+                'user_id',
+            ),
+
+        ),
+        'primary key' => array(
+            'id',
+        ),
+    );
+    return $schema;
+}

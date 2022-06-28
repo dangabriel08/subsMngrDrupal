@@ -15,8 +15,6 @@ function subs_mngr_drupal_install()
 
 
 
-
-
 /*
 * Implements hook_menu().
 */
