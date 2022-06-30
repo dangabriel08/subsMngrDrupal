@@ -26,7 +26,7 @@ function subs_mngr_drupal_schema()
                 'not null' => TRUE,
                 'default' => '',
             ),
-            '	subs_price' => array(
+            'subs_price' => array(
                 'description' => 'Subs Price',
                 'type' => 'numeric',
                 'precision' => 6,
