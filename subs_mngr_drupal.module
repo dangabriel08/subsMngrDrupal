@@ -52,10 +52,14 @@ function subs_mngr_add_subs_form($node, &$form_state)
 
     // subscription_name
     $form['subscription_name'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Subscription name'),
-        '#default_value' => '',
-        '#maxlength' => 127,
+        '#type' => 'select',
+        '#title' => t('Subscription'),
+        '#options' => array(
+            1 => 'Netflix',
+            2 => 'HBO',
+            3 => 'Disney Plus',
+        ),
+        '#description' => t('Choose one subscription.'),
         '#required' => TRUE
     );
     // subs_price
@@ -68,9 +72,8 @@ function subs_mngr_add_subs_form($node, &$form_state)
     );
     // billing_date
     $form['billing_date'] = array(
-        '#type' => 'textfield',
+        '#type' => 'date',
         '#title' => t('Billing Date'),
-        '#maxlength' => 127,
         '#required' => TRUE
     );
     // payment_method_type
@@ -78,11 +81,11 @@ function subs_mngr_add_subs_form($node, &$form_state)
         '#type' => 'select',
         '#title' => t('Payment Method Type'),
         '#options' => array(
-            1 => 'Netflix',
-            2 => 'HBO',
-            3 => 'Disney Plus',
+            1 => 'Credit Card',
+            2 => 'Debit Card',
+            3 => 'Paypal',
         ),
-        '#description' => t('Choose one subscription.'),
+        '#description' => t('Choose one payment type.'),
         '#required' => TRUE
     );
     // payment_method_used
@@ -107,13 +110,36 @@ function subs_mngr_add_subs_form($node, &$form_state)
  */
 function subs_mngr_add_subs_form_validate($form, &$form_state)
 {
+    $form_values = $form_state['values'];
 
-    print_r($form_state['values']);
+    if (strlen($form_values['payment_method_used']) < 10) {
+        form_set_error('payment_method_used', t('subscription name is too short'));
+        return false;
+    }
 
     return true;
 }
 
+/**
+ * Implements hook_node_submit().
+ */
+function subs_mngr_add_subs_form_submit($form, &$form_state)
+{
 
+    $form_values = $form_state['values'];
+
+    $id = $nid = db_insert('subscriptions')
+        ->fields(array(
+            'user_id' => $user->uid,
+            'subscription_name' => $form_values['subscription_name'],
+            'subs_price' => $form_values['subs_price'],
+            'billing_date' => $form_values['billing_date'],
+            'payment_method_used' => $form_values['payment_method_used'],
+            'payment_method_type' => $form_values['payment_method_type'],
+
+        ))
+        ->execute();
+}
 /*
 * Implements hook_permision().
 */
@@ -128,7 +154,6 @@ function subs_mngr_drupal_permission()
     );
 }
 
-// Blocks = Widgets in WordPress
 
 /*
 * Implements hook_block_info().
