@@ -29,7 +29,7 @@ function subs_mngr_drupal_menu()
     $items['add-subs'] = array(
         'page callback' => 'drupal_get_form',
         'page arguments' => array('subs_mngr_add_subs_form'),
-        'access arguments' => array('access subs manager')
+        'access arguments' => array('read subs manager')
     );
     return $items;
 }
@@ -64,10 +64,12 @@ function subs_mngr_add_subs_form($node, &$form_state)
     );
     // subs_price
     $form['subs_price'] = array(
-        '#type' => 'number',
+        '#type' => 'textfield',
         '#title' => t('Subscription Price'),
         '#default_value' => 0,
-        '#maxlength' => 127,
+        '#attributes' => array(
+            ' type' => 'number', // insert space before attribute name :)
+        ),
         '#required' => TRUE
     );
     // billing_date
@@ -125,20 +127,24 @@ function subs_mngr_add_subs_form_validate($form, &$form_state)
  */
 function subs_mngr_add_subs_form_submit($form, &$form_state)
 {
+    global $user;
 
     $form_values = $form_state['values'];
+    $billing_date = $form_values['billing_date']['year'] . "-" . $form_values['billing_date']['day'] . "-" . $form_values['billing_date']['month'];
 
-    $id = $nid = db_insert('subscriptions')
+    $id = db_insert('subscriptions')
         ->fields(array(
-            'user_id' => $user->uid,
+            'user_id' => '1',
             'subscription_name' => $form_values['subscription_name'],
             'subs_price' => $form_values['subs_price'],
-            'billing_date' => $form_values['billing_date'],
+            'billing_date' => $billing_date . " " . date('h:i:s'),
             'payment_method_used' => $form_values['payment_method_used'],
             'payment_method_type' => $form_values['payment_method_type'],
 
         ))
         ->execute();
+
+    drupal_set_message(t("Subs has been added.:" . json_encode($form_values) . "@" . $billing_date));
 }
 /*
 * Implements hook_permision().
@@ -148,7 +154,11 @@ function subs_mngr_drupal_permission()
 {
     return array(
         'access subs manager' => array(
-            'title' => t('Access Subscription manager'),
+            'title' => t('Access Subscription manager form'),
+            'description' => t('Access Subscriptions on the site'),
+        ),
+        'read subs manager' => array(
+            'title' => t('Access Subscription list'),
             'description' => t('Access Subscriptions on the site'),
         ),
     );
