@@ -3,6 +3,8 @@
 /*
 * API Documentation
 * https://api.drupal.org/api/drupal/7.x
+* Rendering array
+* https://www.drupal.org/node/930760
 */
 
 
@@ -13,7 +15,19 @@ function subs_mngr_drupal_install()
 {
 }
 
+/**
+ * Implements hook_theme().
+ */
+function subs_mngr_drupal_theme($existing, $type, $theme, $path)
+{
 
+    return (array(
+        'subs_mngr_list_template' => array(
+            'variables' => array('subscription_table' => NULL),
+            'template' => 'subs_mngr_list_template'
+        )
+    ));
+}
 
 /*
 * Implements hook_menu().
@@ -31,12 +45,58 @@ function subs_mngr_drupal_menu()
         'page arguments' => array('subs_mngr_add_subs_form'),
         'access arguments' => array('read subs manager')
     );
+    $items['edit-subs/%'] = array(
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('subs_mngr_edit_subs_form', 1),
+        'access arguments' => array('edit subscription')
+    );
+
     return $items;
 }
 
 function subs_manager_mainpage()
 {
-    return "<strong>this the subs manager main page!</strong>";
+    $query = db_select('subscriptions', 'subs');
+    $query
+        ->fields('subs', array('subscription_name', 'subs_price', 'billing_date', 'payment_method_used', 'payment_method_type'))
+        ->range(0, 50)
+        ->orderBy('subs.id');
+    $subs = $query->execute();
+
+    // echo print_r($subs);
+    $header = array(
+        t("subscription_name"),
+        t("subs_price"),
+        t("billing_date"),
+        t("payment_method_used"),
+        t("payment_method_type"),
+        t("Action")
+    );
+
+    $rows = array();
+    $action_dropdown = '<div class="dropdown">
+    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+      Dropdown
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+      <li><a href="#">Edit</a></li>
+      <li role="separator" class="divider"></li>
+      <li><a href="#" class="danger">Delete</a></li>
+    </ul>
+  </div>';
+    foreach ($subs as $sub) {
+        # code...
+        $rows[] = array(
+            check_plain($sub->subscription_name),
+            check_plain($sub->subs_price),
+            check_plain($sub->billing_date),
+            check_plain($sub->payment_method_used),
+            check_plain($sub->payment_method_type),
+            $action_dropdown
+        );
+    }
+    return theme('subs_mngr_list_template', array('subscription_table' => array('header' => $header, 'rows' => $rows)));
 }
 
 /**
@@ -46,6 +106,70 @@ function subs_manager_mainpage()
  */
 
 function subs_mngr_add_subs_form($node, &$form_state)
+{
+
+    // user_id
+
+    // subscription_name
+    $form['subscription_name'] = array(
+        '#type' => 'select',
+        '#title' => t('Subscription'),
+        '#options' => array(
+            1 => 'Netflix',
+            2 => 'HBO',
+            3 => 'Disney Plus',
+        ),
+        '#description' => t('Choose one subscription.'),
+        '#required' => TRUE
+    );
+    // subs_price
+    $form['subs_price'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Subscription Price ($)'),
+        '#default_value' => 0,
+        '#attributes' => array(
+            ' type' => 'Decimal', // insert space before attribute name :)
+        ),
+        '#required' => TRUE
+    );
+    // billing_date
+    $form['billing_date'] = array(
+        '#type' => 'date',
+        '#title' => t('Billing Date'),
+        '#required' => TRUE,
+
+    );
+    // payment_method_type
+    $form['payment_method_type'] = array(
+        '#type' => 'select',
+        '#title' => t('Payment Method Type'),
+        '#options' => array(
+            1 => 'Credit Card',
+            2 => 'Debit Card',
+            3 => 'Paypal',
+        ),
+        '#description' => t('Choose one payment type.'),
+        '#required' => TRUE
+    );
+    // payment_method_used
+    $form['payment_method_used'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Payment Meethod Used'),
+        '#maxlength' => 127,
+        '#required' => TRUE
+    );
+
+    // Submit Button
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Submit')
+    );
+
+    return $form;
+}
+
+
+function subs_mngr_edit_subs_form($node, &$form_state)
 {
 
     // user_id
@@ -144,7 +268,7 @@ function subs_mngr_add_subs_form_submit($form, &$form_state)
         ))
         ->execute();
 
-    drupal_set_message(t("Subs has been added.:" . json_encode($form_values) . "@" . $billing_date));
+    drupal_set_message(t("Subs has been added."));
 }
 /*
 * Implements hook_permision().
@@ -161,8 +285,13 @@ function subs_mngr_drupal_permission()
             'title' => t('Access Subscription list'),
             'description' => t('Access Subscriptions on the site'),
         ),
+        'edit subscription' => array(
+            'title' => t('Edit a Subscription'),
+            'description' => t('Access Subscriptions on the site'),
+        ),
     );
 }
+
 
 
 /*
